@@ -318,6 +318,8 @@ static PyObject *DecodeString (UMTypeInfo *ti, char *value, size_t cbValue)
 
   case MCS_gbk_chinese_ci://28,
   case MCS_gbk_bin://87,
+    return PyUnicode_Decode(value, cbValue, "gbk", NULL);
+
   case MCS_latin5_turkish_ci://30,
   case MCS_latin5_bin://78,
   case MCS_armscii8_general_ci://32,
@@ -739,6 +741,11 @@ PyObject *PyUnicode_EncodeCP1250Helper(const Py_UNICODE *data, Py_ssize_t length
   return PyUnicode_Encode (data, length, "cp1250", errors);
 }
 
+PyObject *PyUnicode_EncodeGBKHelper(const Py_UNICODE *data, Py_ssize_t length, const char *errors)
+{
+  return PyUnicode_Encode (data, length, "gbk", errors);
+}
+
 
 PyObject *HandleError(Connection *self, const char *funcName)
 {
@@ -845,7 +852,13 @@ PyObject *Connection_connect(Connection *self, PyObject *args)
           {
             self->charset = MCS_cp1250_general_ci;
             self->PFN_PyUnicode_Encode = PyUnicode_EncodeCP1250Helper;
-          }
+          }else
+         if (strcmp (pstrCharset, "gbk") == 0)
+         {
+           self->charset = MCS_gbk_chinese_ci;
+           self->PFN_PyUnicode_Encode = PyUnicode_EncodeGBKHelper;
+         }
+
           else
           {
             return PyErr_Format (PyExc_ValueError, "Unsupported character set '%s' specified", pstrCharset);
